@@ -2,9 +2,15 @@ package fftools
 package utils
 
 import java.io.{ File, FileWriter }
+import scala.io.Source
+import scala.util.Using
 import scala.collection.mutable
 
 object FileUtils {
+
+  def readFile(fileName: String): List[String] = {
+    Using(Source.fromFile(fileName)) { source => source.getLines().toList }.get // throws any exception that occurs
+  }
 
   /**
    * Returns a list of all files in the specifier directory with the specified extension(s).  If no extensions are
