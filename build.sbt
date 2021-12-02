@@ -8,4 +8,8 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("fftools")
   )
 
-libraryDependencies += "com.typesafe" % "config" % "1.4.1"
+libraryDependencies ++= Seq(
+  "com.typesafe" % "config" % "1.4.1",
+  "org.json4s" %% "json4s-jackson" % "4.0.3",
+  "joda-time" % "joda-time" % "2.10.13"
+)
