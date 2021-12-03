@@ -4,6 +4,7 @@ package model
 import utils.StringUtils._
 import utils.FileUtils
 import utils.Logger._
+import com.typesafe.config.ConfigFactory
 
 case class Standings(rows: List[StandingsRow]) {
 
@@ -12,6 +13,10 @@ case class Standings(rows: List[StandingsRow]) {
 }
 
 object Standings {
+
+  private val conf = ConfigFactory.load.getConfig("playoff_probabilities")
+
+  val currentStandings: Standings = Standings.parseFrom(conf.getString("current_standings_file"))
 
   def parseFrom(fileName: String): Standings = {
     val rows = StandingsRow.parseFrom(fileName)
