@@ -2,8 +2,8 @@ package fftools
 package model
 
 import utils.StringUtils._
+import utils.FloatUtils._
 import utils.FileUtils
-import utils.Logger._
 import com.typesafe.config.ConfigFactory
 
 case class Standings(rows: List[StandingsRow]) {
@@ -38,7 +38,9 @@ case class StandingsRow(
                          moves: Int
                        ) {
 
-  override def toString: String = s"${rank}) $teamName $wins-$losses-$ties PF: $pointsFor PA: $pointsAgainst $streak $waiver $moves"
+  lazy val winPercentage: Float = (wins + ties/2f) / (wins + losses + ties)
+
+  override def toString: String = s"${rank}) $teamName $wins-$losses-$ties (Win %: ${winPercentage.rounded(3)}) PF: $pointsFor PA: $pointsAgainst $streak $waiver $moves"
 
 }
 
