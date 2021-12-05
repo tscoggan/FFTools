@@ -8,6 +8,16 @@ import com.typesafe.config.ConfigFactory
 
 case class Standings(rows: List[StandingsRow]) {
 
+  def get(team: Team): StandingsRow = rows.find(_.teamName == team.name) match {
+    case Some(row) => row
+    case None => throw new Exception(s"Team $team not found in current standings")
+  }
+
+  /*
+    What place in the standings (1st, 2nd, etc) the specified team finished
+   */
+  def getRank(team: Team): Int = get(team).rank
+
   override def toString: String = rows.map(_.toString).mkString("\n")
 
 }

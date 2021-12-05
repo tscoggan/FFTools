@@ -20,6 +20,10 @@ object FloatUtils {
       df.format(f)
     }
 
+    def toPercent(decimalPlaces: Int): String = {
+      (f * 100).rounded(decimalPlaces)
+    }
+
   }
 
 }
