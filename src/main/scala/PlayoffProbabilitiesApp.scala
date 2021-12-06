@@ -100,13 +100,21 @@ object PlayoffProbabilitiesApp extends App {
 
   val allScenarioStandings: Seq[Standings] = allScenarios.map(_.applyToStandings)
 
+  def simulateTiebreakerSwaps(scenarioStandings: Seq[Standings]): Seq[Standings] = {
+    scenarioStandings
+  }
+
   val playoffProbabilities: List[PlayoffProbabilities] = allTeams.map { team =>
     type Rank = Int // which place this team finished
-    type NumberOfScenarios = Int // number of scenarios in which this team finished in the corresponding place
-    val rankCounts: Map[Rank, NumberOfScenarios] = allScenarioStandings.groupBy(_.getRank(team)).map { case (rank, scenarios) => (rank, scenarios.length) }
+    type NumberOfScenarios = Float // number of scenarios in which this team finished in the corresponding place --- fractional if tiebreaker weights are used
+    val rankCounts: Map[Rank, NumberOfScenarios] = simulateTiebreakerSwaps(allScenarioStandings)
+      .groupBy(_.getRank(team))
+      .map { case (rank, scenarios) => (rank, scenarios.map(_.weight).sum) }
+
     logDebug(s"rankCounts for $team:\n"+rankCounts.mkString("\n"))
+
     val probabilities: Map[PlayoffSeed, Probability] = (1 to playoffSpots).map { seed =>
-      val probability: Probability = rankCounts.getOrElse(seed, 0).toFloat / numberOfScenarios
+      val probability: Probability = rankCounts.getOrElse(seed, 0f) / numberOfScenarios
       (seed, probability)
     }.toMap
     PlayoffProbabilities(team, probabilities)

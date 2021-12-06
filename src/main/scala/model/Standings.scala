@@ -6,7 +6,11 @@ import utils.FloatUtils._
 import utils.FileUtils
 import com.typesafe.config.ConfigFactory
 
-case class Standings(rows: List[StandingsRow]) {
+/**
+ * @param rows Each row contains standings data for a single team
+ * @param weight Used to split a single scenario for the purposes of simulating teams swapping tiebreaker places.  Ranges from 0.0 to 1.0
+ */
+case class Standings(rows: List[StandingsRow], weight: Float = 1.0f) {
 
   def get(team: Team): StandingsRow = rows.find(_.teamName == team.name) match {
     case Some(row) => row
