@@ -28,6 +28,11 @@ object MathUtils {
   def stdDev[T: Numeric](xs: Iterable[T]): Double = math.sqrt(variance(xs))
 
   /**
+   * Returns a random number from a normal distribution with the specified parameters
+   */
+  def randomNumber(mean: Double, stdDev: Double): Double = (util.Random.nextGaussian() * stdDev) + mean
+
+  /**
    * Returns % of elements in the specified list for which the `isTrue` function is true.
    */
   def percent[T](xs: Iterable[T], isTrue: T => Boolean): Double = {

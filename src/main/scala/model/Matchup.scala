@@ -24,7 +24,17 @@ object Matchup {
 
 }
 
-case class MatchupResult(matchup: Matchup, winner: Team, loser: Team) {
+case class MatchupResult(matchup: Matchup, team1Score: Float, team2Score: Float) {
+
+  val winner: Team = if (team1Score > team2Score) matchup.team1 else matchup.team2 // no need to simulate ties since they're so rare
+
+  val loser: Team = if (winner == matchup.team1) matchup.team2 else matchup.team1
+
+  def pointsScoredBy(team: Team): Float = team match {
+    case matchup.team1 => team1Score
+    case matchup.team2 => team2Score
+    case _ => 0f
+  }
 
   override def toString: String = s"Week ${matchup.week}: $winner defeats $loser"
 

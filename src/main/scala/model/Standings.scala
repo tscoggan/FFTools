@@ -6,11 +6,7 @@ import utils.FloatUtils._
 import utils.FileUtils
 import com.typesafe.config.ConfigFactory
 
-/**
- * @param rows Each row contains standings data for a single team
- * @param weight Used to split a single scenario for the purposes of simulating teams swapping tiebreaker places.  Ranges from 0.0 to 1.0
- */
-case class Standings(rows: List[StandingsRow], weight: Float = 1.0f) {
+case class Standings(rows: List[StandingsRow]) {
 
   def get(team: Team): StandingsRow = rows.find(_.teamName == team.name) match {
     case Some(row) => row
@@ -21,6 +17,11 @@ case class Standings(rows: List[StandingsRow], weight: Float = 1.0f) {
     What place in the standings (1st, 2nd, etc) the specified team finished
    */
   def getRank(team: Team): Int = get(team).rank
+
+  def teamsWithSameRecordAs(team: Team): List[Team] = {
+    val t: StandingsRow = get(team)
+    rows.filter(r => r.teamName != team.name && r.wins == t.wins && r.losses == t.losses && r.ties == t.ties).map(r => Teams.get(r.teamName))
+  }
 
   override def toString: String = rows.map(_.toString).mkString("\n")
 
@@ -52,7 +53,7 @@ case class StandingsRow(
                          moves: Int
                        ) {
 
-  lazy val winPercentage: Float = (wins + ties/2f) / (wins + losses + ties)
+  lazy val winPercentage: Float = (wins + ties / 2f) / (wins + losses + ties)
 
   override def toString: String = s"${rank}) $teamName $wins-$losses-$ties (Win %: ${winPercentage.rounded(3)}) PF: $pointsFor PA: $pointsAgainst $streak $waiver $moves"
 
