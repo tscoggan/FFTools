@@ -46,16 +46,12 @@ case class StandingsRow(
                          wins: Int,
                          losses: Int,
                          ties: Int,
-                         pointsFor: Float,
-                         pointsAgainst: Float,
-                         streak: String,
-                         waiver: Int,
-                         moves: Int
+                         pointsFor: Float
                        ) {
 
   lazy val winPercentage: Float = (wins + ties / 2f) / (wins + losses + ties)
 
-  override def toString: String = s"${rank}) $teamName $wins-$losses-$ties (Win %: ${winPercentage.rounded(3)}) PF: $pointsFor PA: $pointsAgainst $streak $waiver $moves"
+  override def toString: String = s"${rank}) $teamName $wins-$losses-$ties (Win %: ${winPercentage.rounded(3)}) PF: $pointsFor"
 
 }
 
@@ -67,7 +63,7 @@ object StandingsRow {
     .map {
       nextLine =>
 
-        val Array(rank, team, wlt, ptsFor, ptsAgainst, streak, waiver, moves) = nextLine.split("\t").map(_.trim)
+        val Array(rank, team, wlt, ptsFor, xs @ _*) = nextLine.split("\t").map(_.trim)
 
         val Array(wins, losses, ties) = wlt.split("-").map(_.toInt)
 
@@ -76,11 +72,6 @@ object StandingsRow {
           wins,
           losses,
           ties,
-          ptsFor.toFloat,
-          ptsAgainst.toFloat,
-          streak,
-          waiver.toInt,
-          moves.toInt
-        )
+          ptsFor.toFloat)
     }
 }
