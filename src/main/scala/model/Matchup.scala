@@ -3,6 +3,7 @@ package model
 
 import utils.StringUtils._
 import utils.FileUtils
+import utils.FloatUtils._
 import com.typesafe.config.ConfigFactory
 
 case class Matchup(week: Int, team1: Team, team2: Team) {
@@ -36,7 +37,7 @@ case class MatchupResult(matchup: Matchup, team1Score: Float, team2Score: Float)
     case _ => 0f
   }
 
-  override def toString: String = s"Week ${matchup.week}: $winner defeats $loser"
+  override def toString: String = s"Week ${matchup.week}: $winner (${math.max(team1Score, team2Score).rounded(2)}) defeats $loser (${math.min(team1Score, team2Score).rounded(2)})"
 
 }
 

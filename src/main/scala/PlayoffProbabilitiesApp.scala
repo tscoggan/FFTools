@@ -56,8 +56,13 @@ object PlayoffProbabilitiesApp extends App {
 
   // use Monte Carlo sim to perform N simulations of remaining matchups:
 
-  val allScenarios: Seq[Scenario] = (1 to conf.getInt("number_of_sim_iterations")) map {
-    ???
+  val allScenarios: Seq[Scenario] = (1 to conf.getInt("number_of_sim_iterations")) map { i =>
+    val matchupResults: List[MatchupResult] = remainingMatchups.map{ matchup =>
+      val team1Score: Float = randomNumber(matchup.team1.meanScore, matchup.team1.stdDevScore).toFloat
+      val team2Score: Float = randomNumber(matchup.team2.meanScore, matchup.team2.stdDevScore).toFloat
+      MatchupResult(matchup, team1Score, team2Score)
+    }
+    Scenario(matchupResults)
   }
 
   val numberOfScenarios: Int = allScenarios.length
@@ -97,17 +102,17 @@ object PlayoffProbabilitiesApp extends App {
     val avgRank: Float = weightedAvg(rankCounts.toSeq: _*).toFloat
 
     val probabilities: Map[PlayoffSeed, Probability] = (1 to playoffSpots).map { seed =>
-      val probability: Probability = rankCounts.getOrElse(seed, 0) / numberOfScenarios
+      val probability: Probability = rankCounts.getOrElse(seed, 0).toFloat / numberOfScenarios
       (seed, probability)
     }.toMap
     PlayoffProbabilities(team, probabilities, avgRank)
-  }.sortBy(p => (p.avgRank, p.playoffProbability)).reverse
+  }.sortBy(_.avgRank)
 
   log("Finished generating playoff probabilities")
 
   // dump results to CSV file:
   val outputFile: String = conf.getString("output_file_path")
-  val output: List[String] = s"Team,Avg Rank,Playoffs (6 spots),Bye (2 spots), 1st Seed, 2nd Seed, 3rd Seed, 4th Seed, 5th Seed, 6th Seed" :: playoffProbabilities.map(_.toCSVString)
+  val output: List[String] = s"Team,Avg Finish,Playoffs (6 spots),Bye (2 spots), 1st Seed, 2nd Seed, 3rd Seed, 4th Seed, 5th Seed, 6th Seed" :: playoffProbabilities.map(_.toCSVString)
   FileUtils.writeLinesToFile(output, outputFile, overwrite = true)
 
   log(s"Done!  Results written to $outputFile")
