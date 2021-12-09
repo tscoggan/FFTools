@@ -6,8 +6,7 @@ import utils.FloatUtils._
 import utils.MathUtils._
 import com.typesafe.config.ConfigFactory
 import model._
-
-import scala.annotation.tailrec
+import model.CustomTypes._
 
 object PlayoffProbabilitiesApp extends App {
 
@@ -56,7 +55,7 @@ object PlayoffProbabilitiesApp extends App {
 
   // use Monte Carlo sim to perform N simulations of remaining matchups:
 
-  val allScenarios: Seq[Scenario] = (1 to conf.getInt("number_of_sim_iterations")) map { i =>
+  val allScenarios: Seq[Scenario] = (1 to conf.getInt("number_of_sim_iterations")) map { _ =>
     val matchupResults: List[MatchupResult] = remainingMatchups.map{ matchup =>
       val team1Score: Float = randomNumber(matchup.team1.meanScore, matchup.team1.stdDevScore).toFloat
       val team2Score: Float = randomNumber(matchup.team2.meanScore, matchup.team2.stdDevScore).toFloat
@@ -67,10 +66,7 @@ object PlayoffProbabilitiesApp extends App {
 
   val numberOfScenarios: Int = allScenarios.length
 
-  log(s"Generated $numberOfScenarios scenarios")
-
-  type PlayoffSeed = Int
-  type Probability = Float
+  log(s"Generated $numberOfScenarios allScenarios")
 
   val playoffSpots: Int = conf.getInt("number_of_playoff_spots")
   val playoffByes: Int = conf.getInt("number_of_playoff_byes")
@@ -88,12 +84,15 @@ object PlayoffProbabilitiesApp extends App {
       (1 to playoffSpots).map { seed => probabilitiesBySeed.getOrElse(seed, 0.0f)}.map(_.toPercent(2)+"%").mkString(",")
   }
 
-  val allScenarioStandings: Seq[Standings] = allScenarios.map(_.applyToStandings)
+  case class ScenarioStandings(scenario: Scenario, standings: Standings) {
+    def teamRanks: Map[Rank, Team] = standings.allRanks
+  }
+
+  val allScenarioStandings: Seq[ScenarioStandings] = allScenarios.map(s => ScenarioStandings(s, s.applyToStandings))
 
   val playoffProbabilities: List[PlayoffProbabilities] = allTeams.map { team =>
-    type Rank = Int // which place this team finished
-    type NumberOfScenarios = Int // number of scenarios in which this team finished in the corresponding place
-    val rankCounts: Map[Rank, NumberOfScenarios] = allScenarioStandings
+    type NumberOfScenarios = Int // number of allScenarios in which this team finished in the corresponding place
+    val rankCounts: Map[Rank, NumberOfScenarios] = allScenarioStandings.map(_.standings)
       .groupBy(_.getRank(team))
       .map { case (rank, scenarios) => (rank, scenarios.length) }
 
@@ -116,4 +115,7 @@ object PlayoffProbabilitiesApp extends App {
   FileUtils.writeLinesToFile(output, outputFile, overwrite = true)
 
   log(s"Done!  Results written to $outputFile")
+
+  val report = reports.PathsToPlayoffsReport(currentStandings, allScenarioStandings)
+  report.createFor(allTeams.find(_.name == "Show Me Your TDs").get, 6)
 }

@@ -5,6 +5,7 @@ import utils.StringUtils._
 import utils.FloatUtils._
 import utils.FileUtils
 import com.typesafe.config.ConfigFactory
+import model.CustomTypes._
 
 case class Standings(rows: List[StandingsRow]) {
 
@@ -16,7 +17,15 @@ case class Standings(rows: List[StandingsRow]) {
   /*
     What place in the standings (1st, 2nd, etc) the specified team finished
    */
-  def getRank(team: Team): Int = get(team).rank
+  def getRank(team: Team): Rank = get(team).rank
+
+  def allRanks: Map[Rank, Team] = Teams.allTeams.map(t => (getRank(t), t)).toMap
+
+  def tiebreakerWinner(team1: Team, team2: Team): Team = {
+    val team1Points = get(team1).pointsFor
+    val team2Points = get(team2).pointsFor
+    if (team1Points > team2Points) team1 else team2
+  }
 
   def teamsWithSameRecordAs(team: Team): List[Team] = {
     val t: StandingsRow = get(team)
@@ -26,6 +35,7 @@ case class Standings(rows: List[StandingsRow]) {
   override def toString: String = rows.map(_.toString).mkString("\n")
 
 }
+
 
 object Standings {
 
