@@ -21,6 +21,11 @@ case class Standings(rows: List[StandingsRow]) {
 
   def allRanks: Map[Rank, Team] = Teams.allTeams.map(t => (getRank(t), t)).toMap
 
+  def playoffSeeds: Map[Rank, Team] = {
+    val conf = ConfigFactory.load.getConfig("playoff_probabilities")
+    rows.filter(_.rank <= conf.getInt("number_of_playoff_spots")).map(r => (r.rank,Teams.get(r.teamName))).toMap
+  }
+
   def tiebreakerWinner(team1: Team, team2: Team): Team = {
     val team1Points = get(team1).pointsFor
     val team2Points = get(team2).pointsFor

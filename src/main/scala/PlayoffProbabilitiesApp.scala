@@ -86,6 +86,7 @@ object PlayoffProbabilitiesApp extends App {
 
   case class ScenarioStandings(scenario: Scenario, standings: Standings) {
     def teamRanks: Map[Rank, Team] = standings.allRanks
+    def playoffSeeds: Map[Rank, Team] = standings.playoffSeeds
   }
 
   val allScenarioStandings: Seq[ScenarioStandings] = allScenarios.map(s => ScenarioStandings(s, s.applyToStandings))
@@ -109,6 +110,10 @@ object PlayoffProbabilitiesApp extends App {
 
   log("Finished generating playoff probabilities")
 
+  val eliminatedTeams: List[Team] = playoffProbabilities.filter(_.playoffProbability == 0).map(_.team)
+
+  log("Eliminated teams: \n\t"+eliminatedTeams.mkString("\n\t"))
+
   // dump results to CSV file:
   val outputFile: String = conf.getString("output_file_path")
   val output: List[String] = s"Team,Avg Finish,Playoffs (6 spots),Bye (2 spots), 1st Seed, 2nd Seed, 3rd Seed, 4th Seed, 5th Seed, 6th Seed" :: playoffProbabilities.map(_.toCSVString)
@@ -116,6 +121,6 @@ object PlayoffProbabilitiesApp extends App {
 
   log(s"Done!  Results written to $outputFile")
 
-  val report = reports.PathsToPlayoffsReport(currentStandings, allScenarioStandings)
+  val report = reports.PathsToPlayoffsReport(currentStandings, allScenarioStandings, eliminatedTeams)
   report.createFor(allTeams.find(_.name == "Show Me Your TDs").get, 6)
 }
