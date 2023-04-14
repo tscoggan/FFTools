@@ -78,7 +78,7 @@ object StandingsRow {
     .map {
       nextLine =>
 
-        val Array(rank, team, wlt, ptsFor, xs @ _*) = nextLine.split("\t").map(_.trim)
+        val Array(rank, team, wlt, ptsFor, other: _*) = nextLine.split("\t").map(_.trim)
 
         val Array(wins, losses, ties) = wlt.split("-").map(_.toInt)
 
